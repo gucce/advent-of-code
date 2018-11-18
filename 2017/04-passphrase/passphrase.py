@@ -12,7 +12,7 @@ def contains_duplicates(line):
 
 def count_valid_lines_duplicates(document):
     return(len([l for l in document.splitlines()
-        if not contains_duplicates(l.split(' '))]))
+        if not contains_duplicates(l.split())]))
 
 
 def contains_anagram(line):
@@ -27,7 +27,7 @@ def contains_anagram(line):
 
 def count_valid_lines_anagrams(document):
     return len([line for line in document.splitlines()
-            if not contains_anagram(line.split(' '))])
+            if not contains_anagram(line.split())])
 
 
 def main():
