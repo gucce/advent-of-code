@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 from collections import defaultdict
-import re
 from itertools import combinations
-
-no_whitespace_regex = re.compile(r'[^\w]+')
 
 
 def checksum_min_max(numbers):
@@ -27,7 +24,7 @@ def read_file(file_path):
 
 
 def calc_line_checksum(line, calc_checksum_func):
-    numbers = list(map(int, no_whitespace_regex.split(line)))
+    numbers = [int(n) for n in line.split()]
     checksum = calc_checksum_func(numbers)
     return checksum
 
@@ -45,12 +42,6 @@ def calc_doc_checksum_division(input):
 
 
 def main():
-    input_max_min = """5 1 9 5
-7 5 3
-2 4 6 8"""
-    input_division = """5 9 2 8
-9 4 7 3
-3 8 6 5"""
     input_from_file = read_file('input_doc_checksum')
     print(f'Doc checksum (min, max): {calc_doc_checksum_min_max(input_from_file)}')
     print(f'Doc checksum (division): {calc_doc_checksum_division(input_from_file)}')
