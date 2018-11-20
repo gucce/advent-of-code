@@ -3,8 +3,12 @@ import java.io.File
 fun main(arg: Array<String>) {
 
     val inputMemoryBanks = readFileAsLines("memory_banks_input")
-    val distributedMemory = MemoryAllocator().distributeMemory(splitAndMapToInt(inputMemoryBanks[0]))
-    println("Steps: ${distributedMemory.size}")
+    val memoryAllocator = MemoryAllocator()
+    val memoryBanksIntList = splitAndMapToInt(inputMemoryBanks[0])
+    val distributeMemoryStepsCount = memoryAllocator.getDistributeMemoryStepsCount(memoryBanksIntList)
+    val distributeMemoryCycleLength = memoryAllocator.getDistributeMemoryCycleLength(memoryBanksIntList)
+    println("Steps: $distributeMemoryStepsCount")
+    println("Cycle Length: $distributeMemoryCycleLength")
 
 }
 
@@ -18,9 +22,20 @@ fun splitAndMapToInt(input: String): List<Int> {
 
 class MemoryAllocator {
 
-    fun distributeMemory(memoryBanks: List<Int>): List<List<Int>> {
+    fun getDistributeMemoryStepsCount(memoryBanks: List<Int>): Int {
+        return getDistributeMemoryHistory(memoryBanks).size - 1
+    }
 
-        var memoryAllocationHistory = ArrayList<List<Int>>()
+    fun getDistributeMemoryCycleLength(memoryBanks: List<Int>): Int {
+        val distributeMemoryHistory = getDistributeMemoryHistory(memoryBanks)
+        val duplicate = distributeMemoryHistory.last()
+        val indexOfFirst = distributeMemoryHistory.indexOfFirst { it == duplicate }
+        return distributeMemoryHistory.lastIndex - indexOfFirst
+    }
+
+    fun getDistributeMemoryHistory(memoryBanks: List<Int>): List<List<Int>> {
+
+        val memoryAllocationHistory = ArrayList<List<Int>>()
         memoryAllocationHistory.add(memoryBanks)
 
         while (true) {
@@ -28,6 +43,7 @@ class MemoryAllocator {
             val maxIndex = currentMemoryBanks.withIndex().maxBy { it.value }!!.index
             val nextMemoryBanks = doDistributeMemory(currentMemoryBanks, maxIndex)
             if (memoryAllocationHistory.contains(nextMemoryBanks)) {
+                memoryAllocationHistory.add(nextMemoryBanks)
                 break
             }
             memoryAllocationHistory.add(nextMemoryBanks)
