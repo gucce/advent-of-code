@@ -15,20 +15,20 @@ internal class CpuInstructionsParserTest {
 
     @Test
     internal fun testRunInstruction() {
-        parser.runInstruction("b inc 5 if a > 1")
+        parser.runSingleInstruction("b inc 5 if a > 1")
         assertEquals(0, parser.getRegisterVal("b"))
-        parser.runInstruction("a inc 1 if b < 5")
+        parser.runSingleInstruction("a inc 1 if b < 5")
         assertEquals(1, parser.getRegisterVal("a"))
-        parser.runInstruction("abc dec -10 if a >= 1")
+        parser.runSingleInstruction("abc dec -10 if a >= 1")
         assertEquals(10, parser.getRegisterVal("abc"))
-        parser.runInstruction("c inc -20 if c == 10")
+        parser.runSingleInstruction("c inc -20 if c == 10")
         assertEquals(0, parser.getRegisterVal("c"))
 
     }
 
     @Test
     internal fun testCalcInstruction() {
-        parser.execInstruction("b inc 5 if a > 1")
+        parser.runOpCode("b inc 5 if a > 1")
         assertEquals(5, parser.registers["b"])
     }
 
