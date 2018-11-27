@@ -4,7 +4,8 @@ fun main(args: Array<String>) {
     val input = readFileAsLines("cpu_instructions_input")
     CpuInstructionsParser().apply {
         runInstructions(input)
-        println(maxValFromRegisters())
+        println("Max current register value: $maxRegisterValue")
+        println("Max overall register value: $maxOverallRegisterValue")
     }
 
 }
@@ -15,12 +16,15 @@ fun readFileAsLines(fileName: String): List<String> = File(fileName).readLines()
 class CpuInstructionsParser {
 
     var registers: MutableMap<String, Int> = HashMap()
+    var maxOverallRegisterValue: Int = 0
+    val maxRegisterValue: Int? get() = registers.values.max()
+
 
     fun runInstructions(lines: List<String>) {
         lines.forEach { l -> runSingleInstruction(l) }
     }
 
-    fun runSingleInstruction(line: String) {
+    private fun runSingleInstruction(line: String) {
         if (evalCondition(line)) {
             runOpCode(line)
         }
@@ -40,21 +44,18 @@ class CpuInstructionsParser {
         }
     }
 
-    fun runOpCode(instruction: String) {
+    private fun runOpCode(instruction: String) {
         val (reg, operator, value) = parseInstruction(instruction).split(Regex("\\s+"))
-        var valueInt = value.toInt()
-        if (operator.toLowerCase() == "dec") {
-            valueInt = -valueInt
+        val nextVal = when (operator.toLowerCase()) {
+            "dec" -> getRegisterVal(reg) - value.toInt()
+            "inc" -> getRegisterVal(reg) + value.toInt()
+            else -> throw IllegalArgumentException("Wrong operator $operator")
         }
-        val currentVal = getRegisterVal(reg)
-        registers[reg] = currentVal + valueInt
+        maxOverallRegisterValue = maxOf(maxOverallRegisterValue, nextVal)
+        registers[reg] = nextVal
     }
 
-    fun maxValFromRegisters(): Int? {
-        return registers.values.max()
-    }
-
-    fun getRegisterVal(reg: String): Int {
+    private fun getRegisterVal(reg: String): Int {
         return registers.getOrPut(reg) { 0 }
     }
 
@@ -62,7 +63,7 @@ class CpuInstructionsParser {
         return line.substringBefore(" if")
     }
 
-    fun parseCondition(instruction: String): String {
+    private fun parseCondition(instruction: String): String {
         return instruction.substringAfter("if ")
     }
 
