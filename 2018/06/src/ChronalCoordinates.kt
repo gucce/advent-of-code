@@ -44,25 +44,33 @@ class ChronalCoordinates {
     fun shortestDistanceGrid(coordinates: List<Coord>): Map<Coord, Int> {
         val maxGrid = maxGrid(coordinates)
         val distGrid = mutableMapOf<Coord, Int>()
+        val regionGrid = mutableListOf<Coord>()
 
         // for every coordinate in the maximum grid
         for (x in maxGrid.min.x..maxGrid.max.x) {
             for (y in maxGrid.min.y..maxGrid.max.y) {
                 val currentCoord = Coord(x, y)
-                val nearestCoord = coordinates.asSequence()
+                val nearestCoords = coordinates.asSequence()
                         .map { Pair(distance(currentCoord, it), it) }
                         .sortedBy { it.first } // distance
                         .toList()
 
-                if (nearestCoord[0].first == nearestCoord[1].first) {
+                // part 1
+                if (nearestCoords[0].first == nearestCoords[1].first) {
                     // more than one nearest coordinate
                     distGrid[currentCoord] = -1
                 } else {
                     // add index within the coordinates list as reference
-                    distGrid[currentCoord] = coordinates.indexOf(nearestCoord[0].second)
+                    distGrid[currentCoord] = coordinates.indexOf(nearestCoords[0].second)
+                }
+
+                // part 2
+                if (nearestCoords.sumBy { it.first } < 10000) {
+                    regionGrid.add(currentCoord)
                 }
             }
         }
+        println("regionGrid.size: ${regionGrid.size}")
         return distGrid
     }
 
