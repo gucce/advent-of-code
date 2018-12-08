@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 from collections import namedtuple
-from itertools import chain
+
 
 def readFile(file_path, split_lines = False):
     with open(file_path, 'r', encoding="UTF-8") as f:
@@ -24,14 +24,14 @@ def processNodes(input_list, node_list = []):
         children_list.append(child)
     
     metadata_list = tail[:metadata_count]
-    node_value = metadata_sum(metadata_list, children_list)
+    node_value = sum_metadata_recursive(metadata_list, children_list)
     current_node = Node(metadata=metadata_list, children=children_list, value=node_value)
     # keep track of all nodes
     node_list.append(current_node)
     return current_node, tail[metadata_count:]
 
 
-def metadata_sum(metadata_list, children):
+def sum_metadata_recursive(metadata_list, children):
     if len(children) == 0:
         return sum(metadata_list)
     else:
@@ -50,8 +50,7 @@ def sum_metadata(file_input):
     numbers = list(map(int, file_input.split()))
     node_list = []
     processNodes(numbers, node_list)
-    # 'chain' flattens the list of lists
-    return sum(chain(*(map(lambda n: n.metadata, node_list))))
+    return sum(map(lambda n: sum(n.metadata), node_list))
 
 def main():
     file_input = readFile('input')
