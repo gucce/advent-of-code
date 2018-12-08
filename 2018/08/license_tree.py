@@ -10,35 +10,53 @@ def readFile(file_path, split_lines = False):
             return f.read().strip()
 
 
-Node = namedtuple('Node', 'metadata children')
-NODE_LIST = []
+Node = namedtuple('Node', 'metadata children value')
 
 
-def processChild(input_list):
+def processNodes(input_list, node_list = []):
     children_count, metadata_count = input_list[:2]
     tail = input_list[2:]
     children_list = []
     
-    if children_count > 0:
-        for _ in range(children_count):
-            child, tail = processChild(tail)
-            children_list.append(child)
+    # process children first
+    for _ in range(children_count):
+        child, tail = processNodes(tail, node_list)
+        children_list.append(child)
     
-    current_node = Node(metadata=tail[:metadata_count], children=children_list)
-    NODE_LIST.append(current_node)
-    
+    metadata_list = tail[:metadata_count]
+    node_value = metadata_sum(metadata_list, children_list)
+    current_node = Node(metadata=metadata_list, children=children_list, value=node_value)
+    # keep track of all nodes
+    node_list.append(current_node)
     return current_node, tail[metadata_count:]
+
+
+def metadata_sum(metadata_list, children):
+    if len(children) == 0:
+        return sum(metadata_list)
+    else:
+        return sum(
+            map(lambda m: children[m-1].value, 
+                filter(lambda m: m <= len(children),  metadata_list)))
+
+
+def root_value(file_input):
+    numbers = list(map(int, file_input.split()))
+    root, _ = processNodes(numbers)
+    return root.value
 
 
 def sum_metadata(file_input):
     numbers = list(map(int, file_input.split()))
-    processChild(numbers)
+    node_list = []
+    processNodes(numbers, node_list)
     # 'chain' flattens the list of lists
-    return sum(chain(*(map(lambda n: n.metadata, NODE_LIST))))
+    return sum(chain(*(map(lambda n: n.metadata, node_list))))
 
 def main():
     file_input = readFile('input')
     print('Part 1:', sum_metadata(file_input))
+    print('Part 2:', root_value(file_input))
 
 
 if __name__ == '__main__':
