@@ -1,22 +1,30 @@
 from collections import namedtuple
+import itertools
 
 Step = namedtuple('Step', 'direction_change steps')
 Point = namedtuple('Point', 'direction x y')
 
 
-def readFile(file_path):
+def read_file(file_path):
     with open(file_path, 'r', encoding="UTF-8") as f:
         return f.read()
 
 
-def map_input_to_step(input):
-    if input[0] == 'R':
+def map_input_to_step(input_, single_steps=False):
+    if input_[0] == 'R':
         direction_change = 1
-    elif input[0] == 'L':
+    elif input_[0] == 'L':
         direction_change = -1
     else:
-        exit(1)
-    return Step(direction_change, int(input[1:]))
+        raise RuntimeError(f"{input_} can't be mapped")
+
+    step_count = int(input_[1:])
+    if single_steps:
+        steps = [Step(direction_change, 1)]
+        steps.extend([Step(0, 1) for _ in range(1, step_count)])
+        return steps
+    else:
+        return Step(direction_change, step_count)
 
 
 def walk(point, step):
@@ -34,22 +42,35 @@ def walk(point, step):
     return Point(new_direction, new_x, new_y)
 
 
-def walk_steps(steps):
+def walk_steps(steps, search_visited_twice=False):
     current = Point(direction=0, x=0, y=0)
+    visited = []
     for s in steps:
-        current = walk(current, s)
+        if not search_visited_twice:
+            current = walk(current, s)
+        else:
+            visited.append(current)
+            current = walk(current, s)
+            if any(p for p in visited if p.x == current.x and p.y == current.y):
+                break
     print('Destination', current)
     return abs(current.x) + abs(current.y)
 
 
-def map_input(input):
-    steps = list(map(map_input_to_step, input.split(', ')))
+def map_input(input_, single_steps=False):
+    if single_steps:
+        steps = []
+        for i in input_.split(', '):
+            steps.extend(map_input_to_step(i, True))
+    else:
+        steps = list(map(map_input_to_step, input_.split(', ')))
     return steps
 
 
 def main():
-    input_ = readFile('input')
+    input_ = read_file('input')
     print(walk_steps(map_input(input_)))
+    print(walk_steps(map_input(input_, single_steps=True), search_visited_twice=True))
 
 
 if __name__ == '__main__':
