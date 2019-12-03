@@ -2,3 +2,6 @@ out/
 target/
 *.pyc
 *__pycache__/
+lib/
+.coverage
+htmlcov/
