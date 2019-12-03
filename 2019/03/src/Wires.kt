@@ -2,13 +2,9 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.test.assertEquals
 
-val START = Pos(0, 0, 0)
+val START = Pos(0, 0)
 
-class Pos(val x: Int, val y: Int, val steps: Int) {
-    fun samePosition(other: Pos) = this.x == other.x && this.y == other.y
-
-    fun minStepsSamePosition(others: List<Pos>): Pos? = others.filter { it.samePosition(this) }.minBy { it.steps }
-}
+data class Pos(val x: Int, val y: Int)
 
 fun main() {
     testPart1()
@@ -28,17 +24,16 @@ fun main() {
 private fun part1(firstWireInstructions: List<String>, secondWireInstructions: List<String>): Int {
     val firstPath = path(firstWireInstructions)
     val secondPath = path(secondWireInstructions)
-    val intersections = firstPath.filter { fpos -> !fpos.samePosition(START) }
-            .filter { fpos -> secondPath.any { fpos.samePosition(it) } }
+    val intersections = firstPath.intersect(secondPath).filter { it != START }
     return shortestDistance(START, intersections)
 }
 
 private fun part2(firstWireInstructions: List<String>, secondWireInstructions: List<String>): Int {
     val firstPath = path(firstWireInstructions)
     val secondPath = path(secondWireInstructions)
-    return firstPath.filter { fpos -> !fpos.samePosition(START) }
-            .filter { fpos -> secondPath.any { fpos.samePosition(it) } }
-            .map { fpos -> fpos.steps + fpos.minStepsSamePosition(secondPath)?.steps!! }
+    return firstPath.intersect(secondPath)
+            .filter { it != START }
+            .map { fpos -> firstPath.indexOf(fpos) + secondPath.indexOf(fpos) }
             .min()!!
 }
 
@@ -66,10 +61,10 @@ private fun line(instr: String, start: Pos): List<Pos> {
     val steps = instr.substring(1).toInt()
 
     return when (direction) {
-        "R" -> (start.y..start.y + steps).map { Pos(start.x, it, start.steps + abs(it - start.y)) }
-        "U" -> (start.x..start.x + steps).map { Pos(it, start.y, start.steps + abs(it - start.x)) }
-        "L" -> (start.y downTo start.y - steps).map { Pos(start.x, it, start.steps + abs(it - start.y)) }
-        "D" -> (start.x downTo start.x - steps).map { Pos(it, start.y, start.steps + abs(it - start.x)) }
+        "R" -> (start.y..start.y + steps).map { Pos(start.x, it) }
+        "U" -> (start.x..start.x + steps).map { Pos(it, start.y) }
+        "L" -> (start.y downTo start.y - steps).map { Pos(start.x, it) }
+        "D" -> (start.x downTo start.x - steps).map { Pos(it, start.y) }
         else -> throw IllegalArgumentException("Direction '$direction' cannot be mapped.")
     }
 }
