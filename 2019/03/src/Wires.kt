@@ -2,12 +2,17 @@ import java.io.File
 import kotlin.math.abs
 import kotlin.test.assertEquals
 
-val START = Pos(0, 0)
+val START = Pos(0, 0, 0)
 
-data class Pos(val x: Int, val y: Int)
+class Pos(val x: Int, val y: Int, val steps: Int) {
+    fun samePosition(other: Pos) = this.x == other.x && this.y == other.y
+
+    fun minStepsSamePosition(others: List<Pos>): Pos? = others.filter { it.samePosition(this) }.minBy { it.steps }
+}
 
 fun main() {
-    test()
+    testPart1()
+    testPart2()
 
     val input = readLines("03/input")
 
@@ -15,14 +20,26 @@ fun main() {
 
     // part 1
     println(part1(firstWireInstructions, secondWireInstructions))
+
+    // part 2
+    println(part2(firstWireInstructions, secondWireInstructions))
 }
 
 private fun part1(firstWireInstructions: List<String>, secondWireInstructions: List<String>): Int {
     val firstPath = path(firstWireInstructions)
     val secondPath = path(secondWireInstructions)
-    val positions = firstPath.intersect(secondPath).toMutableSet()
-    positions.remove(START)
-    return shortestDistance(START, positions)
+    val intersections = firstPath.filter { fpos -> !fpos.samePosition(START) }
+            .filter { fpos -> secondPath.any { fpos.samePosition(it) } }
+    return shortestDistance(START, intersections)
+}
+
+private fun part2(firstWireInstructions: List<String>, secondWireInstructions: List<String>): Int {
+    val firstPath = path(firstWireInstructions)
+    val secondPath = path(secondWireInstructions)
+    return firstPath.filter { fpos -> !fpos.samePosition(START) }
+            .filter { fpos -> secondPath.any { fpos.samePosition(it) } }
+            .map { fpos -> fpos.steps + fpos.minStepsSamePosition(secondPath)?.steps!! }
+            .min()!!
 }
 
 private fun mapInput(input: List<String>) = Pair(input[0].split(","), input[1].split(","))
@@ -49,15 +66,17 @@ private fun line(instr: String, start: Pos): List<Pos> {
     val steps = instr.substring(1).toInt()
 
     return when (direction) {
-        "R" -> (start.y..start.y + steps).map { Pos(start.x, it) }
-        "U" -> (start.x..start.x + steps).map { Pos(it, start.y) }
-        "L" -> (start.y downTo start.y - steps).map { Pos(start.x, it) }
-        "D" -> (start.x downTo start.x - steps).map { Pos(it, start.y) }
+        "R" -> (start.y..start.y + steps).map { Pos(start.x, it, start.steps + abs(it - start.y)) }
+        "U" -> (start.x..start.x + steps).map { Pos(it, start.y, start.steps + abs(it - start.x)) }
+        "L" -> (start.y downTo start.y - steps).map { Pos(start.x, it, start.steps + abs(it - start.y)) }
+        "D" -> (start.x downTo start.x - steps).map { Pos(it, start.y, start.steps + abs(it - start.x)) }
         else -> throw IllegalArgumentException("Direction '$direction' cannot be mapped.")
     }
 }
 
-private fun test() {
+private fun testPart1() {
+    println("Test Part 1")
+
     val test1Input = """R75,D30,R83,U83,L12,D49,R71,U7,L72
 U62,R66,U55,R34,D71,R55,D58,R83"""
     val (test1First, test1Second) = mapInput(test1Input.lines())
@@ -67,4 +86,17 @@ U62,R66,U55,R34,D71,R55,D58,R83"""
 U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"""
     val (test2First, test2Second) = mapInput(testInput2.lines())
     assertEquals(135, part1(test2First, test2Second))
+}
+
+private fun testPart2() {
+    println("Test Part 2")
+    val test1Input = """R75,D30,R83,U83,L12,D49,R71,U7,L72
+U62,R66,U55,R34,D71,R55,D58,R83"""
+    val (test1First, test1Second) = mapInput(test1Input.lines())
+    assertEquals(610, part2(test1First, test1Second))
+
+    val testInput2 = """R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"""
+    val (test2First, test2Second) = mapInput(testInput2.lines())
+    assertEquals(410, part2(test2First, test2Second))
 }
