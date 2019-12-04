@@ -1,11 +1,13 @@
 def is_valid_passwd(passwd, part2=False):
-    def is_valid_part2(quadruple):
+    def double_digits_in_center(quadruple):
         return quadruple[0] != quadruple[1] and quadruple[1] == quadruple[2] and quadruple[2] != quadruple[3]
 
-    def start_or_end(digits_):
-        start = digits_[0] == digits_[1] and digits_[1] != digits_[2]
-        end = digits_[-1] == digits_[-2] and digits_[-2] != digits_[-3]
-        return start or end
+    def pad_digits(digits_):
+        padding = [-1]
+        padded_digits_ = padding
+        padded_digits_.extend(digits_)
+        padded_digits_.extend(padding)
+        return padded_digits_
 
     digits = list(map(int, str(passwd)))
 
@@ -14,17 +16,16 @@ def is_valid_passwd(passwd, part2=False):
          any((pair[0] == pair[1]) for pair in zip(digits, digits[1:]))]
     )
     if part1_result and part2:
-        in_between = any(is_valid_part2(quadruple) for quadruple in zip(digits, digits[1:], digits[2:], digits[3:]))
-        return in_between or start_or_end(digits)
+        # to account for double digits at the beginning or at the end we add a -1 before and after the digits
+        padded_digits = pad_digits(digits)
+        return any(double_digits_in_center(quadruple) for quadruple in
+                   zip(padded_digits, padded_digits[1:], padded_digits[2:], padded_digits[3:]))
     else:
         return part1_result
 
 
 def solution(start, end, part2=False):
-    if not part2:
-        return len(list(filter(is_valid_passwd, range(start, end + 1))))
-    else:
-        return len(list(filter(lambda x: is_valid_passwd(x, True), range(start, end + 1))))
+    return len(list(filter(lambda x: is_valid_passwd(passwd=x, part2=part2), range(start, end + 1))))
 
 
 def main():
