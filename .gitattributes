@@ -1,0 +1,3 @@
+# Marking every file as 'not' text prevents git from modifying line endings (CRLF/LF problem)
+# This does NOT affect diffs, only git's annoying behavior to change line endings depending on the OS
+* -text
