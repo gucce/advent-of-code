@@ -5,3 +5,6 @@ target/
 lib/
 .coverage
 htmlcov/
+.idea/
+*.iml
+.vscode/
