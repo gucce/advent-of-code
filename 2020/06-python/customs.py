@@ -1,3 +1,4 @@
+from functools import reduce
 from typing import List
 
 
@@ -6,23 +7,24 @@ def read_file(file_path):
         return f.read()
 
 
-def map_input(input_data: str):
-    return input_data.split('\n\n')
+def map_input(input_data: str) -> List[List[str]]:
+    return [group.splitlines() for group in input_data.split('\n\n')]
 
 
 def part1(groups):
-    return sum(len(set(group.replace('\n', ''))) for group in groups)
+    return sum(all_answers_count(group) for group in groups)
 
 
-def distinct_answers_count(person_answers: List[str]):
-    distinct = set(person_answers[0])
-    for a in person_answers:
-        distinct = distinct.intersection(set(a))
-    return len(distinct)
+def all_answers_count(person_answers: List[str]) -> int:
+    return len(reduce(lambda p, n: p.union(set(n)), person_answers, set(person_answers[0])))
+
+
+def distinct_answers_count(person_answers: List[str]) -> int:
+    return len(reduce(lambda p, n: p.intersection(set(n)), person_answers, set(person_answers[0])))
 
 
 def part2(groups):
-    return sum(distinct_answers_count(group.splitlines()) for group in groups)
+    return sum(distinct_answers_count(group) for group in groups)
 
 
 def main():
