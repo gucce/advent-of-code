@@ -53,11 +53,14 @@ class TestLayers(unittest.TestCase):
         self.assertEqual(11, len(j.map_input(self.input_data)))
 
     def test_part1(self):
-        self.assertEqual(7 * 5, j.part1(j.map_input(self.input_data)))
-        self.assertEqual(22 * 10, j.part1(j.map_input(self.input_data_extended)))
+        self.assertEqual(7 * 5, j.part1(j.sort_jolts(j.map_input(self.input_data))))
+        self.assertEqual(22 * 10, j.part1(j.sort_jolts(j.map_input(self.input_data_extended))))
 
     def test_part2(self):
-        self.assertEqual(62, j.part2(j.map_input(self.input_data), 127))
+        sorted_jolts = j.sort_jolts(j.map_input(self.input_data))
+        sorted_jolts_extended = j.sort_jolts(j.map_input(self.input_data_extended))
+        self.assertEqual(8, j.part2(0, dict(), sorted_jolts))
+        self.assertEqual(19208, j.part2(0, dict(), sorted_jolts_extended))
 
 
 if __name__ == '__main__':
