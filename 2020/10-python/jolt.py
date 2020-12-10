@@ -1,5 +1,6 @@
 from collections import Counter
-from typing import List, Dict
+from functools import cache
+from typing import List
 
 
 def read_file(file_path):
@@ -7,28 +8,29 @@ def read_file(file_path):
         return f.read().strip()
 
 
-def map_input(input_data: str) -> List[int]:
-    return [int(line) for line in input_data.splitlines()]
+class Jolts:
 
+    def __init__(self, input_data, start=0):
+        self.jolts = self.map_input(input_data)
+        self.jolts.insert(0, start)
+        self.jolts.append(max(self.jolts) + 3)
 
-def part1(sorted_jolts: List[int]) -> int:
-    c = Counter()
-    c.update(sorted_jolts[idx + 1] - sorted_jolts[idx] for idx in range(len(sorted_jolts) - 1))
-    print(c)
-    return c[1] * c[3]
+    @staticmethod
+    def map_input(input_data: str) -> List[int]:
+        return sorted(int(line) for line in input_data.splitlines())
 
+    def part1(self) -> int:
+        c = Counter()
+        c.update(self.jolts[idx] - self.jolts[idx - 1] for idx in range(1, len(self.jolts)))
+        return c[1] * c[3]
 
-def part2(curr_idx: int, cache: Dict, sorted_jolts: List[int]) -> int:
-    if curr_idx == len(sorted_jolts) - 1:
-        return 1
-    if curr_idx in cache:
-        return cache[curr_idx]
-    curr_poss = 0
-    for next_idx in range(curr_idx + 1, len(sorted_jolts)):
-        if sorted_jolts[next_idx] - sorted_jolts[curr_idx] <= 3:
-            curr_poss += part2(next_idx, cache, sorted_jolts)
-    cache[curr_idx] = curr_poss
-    return curr_poss
+    @cache
+    def part2(self, curr_idx=0) -> int:
+        # the last element has 1 possibility
+        if curr_idx == len(self.jolts) - 1:
+            return 1
+        return sum(self.part2(next_idx) for next_idx in range(curr_idx + 1, len(self.jolts))
+                   if self.jolts[next_idx] - self.jolts[curr_idx] <= 3)
 
 
 def sort_jolts(jolts, start=0):
@@ -39,11 +41,9 @@ def sort_jolts(jolts, start=0):
 
 
 def main():
-    jolts = map_input(read_file('input'))
-    start = 0
-    sorted_jolts = sort_jolts(jolts, start)
-    print('Part 1: ', part1(sorted_jolts))
-    print('Part 2: ', part2(0, dict(), sorted_jolts))
+    j = Jolts(read_file('input'))
+    print('Part 1: ', j.part1())
+    print('Part 2: ', j.part2())
 
 
 if __name__ == '__main__':
