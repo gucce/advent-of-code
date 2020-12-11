@@ -1,4 +1,6 @@
 from copy import deepcopy
+from functools import cache
+from itertools import product
 from typing import List
 
 
@@ -12,6 +14,7 @@ class Seats:
     def __init__(self, input_data):
         self.seats = self.map_input(input_data)
         self.dim = len(self.seats), len(self.seats[0])
+        self.offsets = list(filter(lambda t: t != (0, 0), product([-1, 0, 1], [-1, 0, 1])))
         self.FREE = 'L'
         self.FLOOR = '.'
         self.OCC = '#'
@@ -21,48 +24,37 @@ class Seats:
         return [[c for c in line] for line in input_data.splitlines()]
 
     def part1(self) -> int:
-        next_seats = deepcopy(self.seats)
-        self.print_seats()
         while True:
-            for row in range(self.dim[0]):
-                for col in range(self.dim[1]):
-                    next_seats[row][col] = self.next_state(row, col)
+            next_seats = deepcopy(self.seats)
+            for row, col in product(range(self.dim[0]), range(self.dim[1])):
+                next_seats[row][col] = self.next_state(row, col)
             if self.seats == next_seats:
-                self.seats = next_seats
-                self.print_seats()
                 break
-            else:
-                self.seats = next_seats
-                next_seats = deepcopy(self.seats)
-                self.print_seats()
+            self.seats = next_seats
         return self.count_occ_seats()
 
     def count_occ_seats(self) -> int:
         return sum(sum(1 for s in row if s == self.OCC) for row in self.seats)
 
-    def part2(self) -> int:
-        return 1
-
     def next_state(self, row, col):
         seat = self.seats[row][col]
         if seat == self.FREE:
-            if all(self.seats[seat[0]][seat[1]] != self.OCC for seat in self.surrounding_seats(row, col)):
+            if all(self.seats[s_id[0]][s_id[1]] != self.OCC for s_id in self.surrounding_seats(row, col)):
                 return self.OCC
         elif seat == self.OCC:
             if sum(self.seats[s[0]][s[1]] == self.OCC for s in self.surrounding_seats(row, col)) >= 4:
                 return self.FREE
         return seat
 
+    @cache
     def surrounding_seats(self, row, col):
-        adj_seats = list()
-        for row_diff in [-1, 0, 1]:
-            for col_diff in [-1, 0, 1]:
-                if not (row_diff == 0 and col_diff == 0):
-                    adj_row = row + row_diff
-                    adj_col = col + col_diff
-                    if 0 <= adj_row < self.dim[0] and 0 <= adj_col < self.dim[1]:
-                        adj_seats.append((adj_row, adj_col))
-        return adj_seats
+        def seat_is_valid(r, c):
+            return 0 <= r < self.dim[0] and 0 <= c < self.dim[1]
+
+        return list(filter(lambda s: seat_is_valid(*s), [(row + dr, col + dc) for dr, dc in self.offsets]))
+
+    def part2(self) -> int:
+        return 1
 
     def print_seats(self):
         [print(''.join(row)) for row in self.seats]
