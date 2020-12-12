@@ -38,20 +38,22 @@ class Seats:
 
     def next_state(self, row, col):
         seat = self.seats[row][col]
+        sur_seats = self.surrounding_seats(row, col)
         if seat == self.FREE:
-            if all(self.seats[s_id[0]][s_id[1]] != self.OCC for s_id in self.surrounding_seats(row, col)):
+            if all(self.seats[s_id[0]][s_id[1]] != self.OCC for s_id in sur_seats):
                 return self.OCC
         elif seat == self.OCC:
-            if sum(self.seats[s[0]][s[1]] == self.OCC for s in self.surrounding_seats(row, col)) >= 4:
+            if sum(self.seats[s[0]][s[1]] == self.OCC for s in sur_seats) >= 4:
                 return self.FREE
         return seat
 
     @cache
-    def surrounding_seats(self, row, col):
+    def surrounding_seats(self, row, col, dist=1):
         def seat_is_valid(r, c):
             return 0 <= r < self.dim[0] and 0 <= c < self.dim[1]
 
-        return list(filter(lambda s: seat_is_valid(*s), [(row + dr, col + dc) for dr, dc in self.offsets]))
+        return list(
+            filter(lambda s: seat_is_valid(*s), [(row + dist * dr, col + dist * dc) for dr, dc in self.offsets]))
 
     def part2(self) -> int:
         return 1
