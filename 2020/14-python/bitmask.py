@@ -1,6 +1,3 @@
-from typing import List
-
-
 def read_file(file_path):
     with open(file_path, 'r', encoding="UTF-8") as f:
         return f.read().strip()
@@ -39,35 +36,25 @@ class Proc:
         return format_def.format(int_val)
 
     def write_mem_p1(self, addr, val):
-        self.memory[addr] = self.mask_val(val)
+        masked_val = ''.join(v if m == 'X' else m for m, v in zip(self.mask, self.to_binary_str(val)))
+        self.memory[addr] = int(masked_val, 2)
 
     def write_mem_p2(self, addr, val):
-        for masked_addr in self.mask_addr(addr):
-            self.memory[masked_addr] = val
-
-    def mask_addr(self, addr) -> List[int]:
-        masked_addr = list()
-        for m, a in zip(self.mask, self.to_binary_str(addr)):
+        def mask_single(m: str, a: str):
             if m == '0':
-                masked_addr.append(a)
+                return a
             elif m == '1':
-                masked_addr.append('1')
+                return '1'
             else:
-                masked_addr.append(m)
-        masked_addr = ''.join(masked_addr)
-        x_count = masked_addr.count('X')
-        possible_addresses = list()
-        for pos in range(2 ** x_count):
-            comb_list = list(self.to_binary_str(pos, x_count))
-            comb_list.append('')  # we need one more place at the end
-            possible_addr = ''.join(a + c for a, c in zip(masked_addr.split('X'), comb_list))
-            possible_addresses.append(int(possible_addr, 2))
-        return possible_addresses
+                return m
 
-    def mask_val(self, val):
-        bin_val = self.to_binary_str(val)
-        masked_val = ''.join(v if m == 'X' else m for m, v in zip(self.mask, bin_val))
-        return int(masked_val, 2)
+        masked_addr = ''.join(mask_single(m, a) for m, a in zip(self.mask, self.to_binary_str(addr)))
+        x_count = masked_addr.count('X')
+        for pos in range(2 ** x_count):
+            # for zip to work the lists must be equally sized, hence the empty string at the end
+            comb_list = list(self.to_binary_str(pos, x_count)) + list('')
+            possible_addr = ''.join(a + c for a, c in zip(masked_addr.split('X'), comb_list))
+            self.memory[int(possible_addr, 2)] = val
 
 
 def main():
